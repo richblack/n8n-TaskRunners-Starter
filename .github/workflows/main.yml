@@ -79,6 +79,7 @@ jobs:
         run: |
           scp -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key ./docker-compose.yml deployer@${{ steps.terraform.outputs.instance_ip }}:/home/deployer/
           scp -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key ./.env deployer@${{ steps.terraform.outputs.instance_ip }}:/home/deployer/
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key ./Caddyfile deployer@${{ steps.terraform.outputs.instance_ip }}:/home/deployer/
 
       - name: 9. Install Docker and Run Services as Deploy User
         run: |

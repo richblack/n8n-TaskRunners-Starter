@@ -49,12 +49,11 @@ services:
       - "443:443"
       - "443:443/udp" # for HTTP/3
     volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
       - caddy_config:/config
-    environment:
-      - N8N_DOMAIN=${N8N_DOMAIN}
-    command: >
-      caddy reverse-proxy --from ${N8N_DOMAIN} --to n8n:5678
+    command:
+      caddy run --config /etc/caddy/Caddyfile
 
 volumes:
   postgres_data:

@@ -1,0 +1,3 @@
+n8n.uncle6.me, playwright.uncle6.me {
+	reverse_proxy n8n:5678
+}
