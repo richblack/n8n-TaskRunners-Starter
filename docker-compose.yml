@@ -304,7 +304,7 @@ services:
       DB_PORT: 5432
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       DB_SCHEMA: _analytics
-      # LOGFLARE_PUBLIC_ACCESS_TOKEN: ${LOGFLARE_PUBLIC_ACCESS_TOKEN} # Keep if you plan to use Logflare
+      
       # LOGFLARE_PRIVATE_ACCESS_TOKEN: ${LOGFLARE_PRIVATE_ACCESS_TOKEN} # Keep if you plan to use Logflare
       LOGFLARE_SINGLE_TENANT: true
       LOGFLARE_SUPABASE_MODE: true
