@@ -24,17 +24,21 @@ jobs:
           ssh-keyscan -H ${{ secrets.LINODE_SERVER_IP }} >> ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
-      - name: 4. Clean up previous Docker containers and networks
+      - name: 4. Clean up previous Docker containers and networks and db volume
         run: |
           ssh root@${{ secrets.LINODE_SERVER_IP }} << 'EOF'
             cd /root || exit 0
+            # Stop and remove existing containers
             if command -v docker &> /dev/null && sudo docker compose ps &> /dev/null; then
               sudo docker compose down -v --remove-orphans
             fi
+            # Clean up Docker system
             if command -v docker &> /dev/null; then
               sudo docker system prune -f
               sudo docker network prune -f
             fi
+            # Remove db volume data to ensure clean start
+            sudo rm -rf ./volumes/db/*
           EOF
 
       - name: 5. Install Docker if not present
