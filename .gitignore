@@ -1,0 +1,10 @@
+# 忽略本地環境變數檔案
+.env
+
+# 忽略 Terraform 狀態檔案
+.terraform/
+*.tfstate
+*.tfstate.backup
+
+# 忽略 macOS 系統檔案
+.DS_Store

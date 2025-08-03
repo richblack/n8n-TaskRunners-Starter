@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    restart: always
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+n8n:
+    image: n8nio/n8n
+    container_name: n8n_app
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      # 連接到同一個 Docker 網路中的 'db' 服務
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=db
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      # 建議設定 n8n 的時區
+      - GENERIC_TIMEZONE=Asia/Taipei
+      # 啟用 n8n 使用者管理，首次啟動將會建立擁有者帳號
+      - N8N_USER_MANAGEMENT_DISABLED=false
+      # 用於加密敏感資料的金鑰，必須設定
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
