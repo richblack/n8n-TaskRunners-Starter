@@ -102,5 +102,5 @@ jobs:
             
             # Go to the project directory and start services
             cd /home/deployer
-            docker compose up -d
+            sudo docker compose up -d
           EOF
