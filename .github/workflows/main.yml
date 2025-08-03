@@ -68,11 +68,11 @@ jobs:
         run: |
           echo "Creating .env file..."
           cat << EOF > .env
-          POSTGRES_USER=n8nuser
           POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DB=n8n_db
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          ANON_KEY=${{ secrets.ANON_KEY }}
+          SERVICE_ROLE_KEY=${{ secrets.SERVICE_ROLE_KEY }}
           N8N_ENCRYPTION_KEY=${{ secrets.N8N_ENCRYPTION_KEY }}
-          N8N_DOMAIN=n8n.uncle6.me
           EOF
 
       - name: 8. Copy Files to Server as Deploy User

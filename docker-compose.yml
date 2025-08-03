@@ -1,44 +1,154 @@
 services:
-  db:
-    image: postgres:15
-    container_name: postgres_db
-    restart: always
+  # -- Supabase Core Services --
+  studio:
+    container_name: supabase-studio
+    image: supabase/studio:20240712
+    restart: unless-stopped
+    ports:
+      - "4000:3000"
     environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+      STUDIO_PG_META_URL: http://meta:8080
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL}
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+    depends_on:
+      - meta
 
+  kong:
+    container_name: supabase-kong
+    image: kong:2.8.1
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+      - "8443:8443"
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /var/lib/kong/kong.yml
+      KONG_DNS_ORDER: LAST,A,CNAME
+      KONG_PLUGINS: request-transformer,cors,key-auth,acl
+    volumes:
+      - ./volumes/kong/kong.yml:/var/lib/kong/kong.yml
+
+  auth:
+    container_name: supabase-auth
+    image: supabase/gotrue:v2.131.0
+    restart: unless-stopped
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      API_EXTERNAL_URL: http://localhost:8000
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgresql://supabase_auth_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      GOTRUE_SITE_URL: ${SITE_URL:-http://localhost:3000}
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_MAILER_AUTOCONFIRM: "true"
+    depends_on:
+      - db
+
+  rest:
+    container_name: supabase-rest
+    image: postgrest/postgrest:v11.2.2
+    restart: unless-stopped
+    environment:
+      PGRST_DB_URI: postgresql://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
+      PGRST_DB_SCHEMAS: public,storage,graphql_public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - db
+
+  realtime:
+    container_name: supabase-realtime
+    image: supabase/realtime:v2.8.9
+    restart: unless-stopped
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: supabase_admin
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: postgres
+      API_JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - db
+
+  storage:
+    container_name: supabase-storage
+    image: supabase/storage-api:v0.45.2
+    restart: unless-stopped
+    environment:
+      ANON_KEY: ${ANON_KEY}
+      SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      POSTGREST_URL: http://rest:3000
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgresql://supabase_storage_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      FILE_SIZE_LIMIT: 52428800
+      STORAGE_BACKEND: file
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+      TENANT_ID: stub
+    volumes:
+      - ./volumes/storage:/var/lib/storage
+    depends_on:
+      - db
+      - rest
+
+  meta:
+    container_name: supabase-meta
+    image: supabase/postgres-meta:v0.79.5
+    restart: unless-stopped
+    environment:
+      PG_META_PORT: 8080
+      PG_META_DB_HOST: db
+      PG_META_DB_PORT: 5432
+      PG_META_DB_NAME: postgres
+      PG_META_DB_USER: supabase_admin
+      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      - db
+
+  db:
+    container_name: supabase-db
+    image: supabase/postgres:15.1.0.107
+    restart: unless-stopped
+    volumes:
+      - ./volumes/db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+      POSTGRES_USER: supabase_admin
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U supabase_admin -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # -- Your Custom Services --
   n8n:
     image: n8nio/n8n
     container_name: n8n_app
     restart: always
     environment:
-      # 連接到同一個 Docker 網路中的 'db' 服務
-      - DB_TYPE=postgresdb
-      - DB_POSTGRESDB_HOST=db
-      - DB_POSTGRESDB_PORT=5432
-      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
-      - DB_POSTGRESDB_USER=${POSTGRES_USER}
-      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
-      # 建議設定 n8n 的時區
-      - GENERIC_TIMEZONE=Asia/Taipei
-      # 啟用 n8n 使用者管理，首次啟動將會建立擁有者帳號
-      - N8N_USER_MANAGEMENT_DISABLED=false
-      # 用於加密敏感資料的金鑰，必須設定
-      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
-      # 設定 n8n 的主機名稱和 Webhook URL，使其能正確地與反向代理協作
-      - N8N_HOST=${N8N_DOMAIN}
-      - WEBHOOK_URL=https://${N8N_DOMAIN}
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: db
+      DB_POSTGRESDB_PORT: 5432
+      DB_POSTGRESDB_DATABASE: postgres
+      DB_POSTGRESDB_USER: supabase_admin
+      DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD}
+      GENERIC_TIMEZONE: Asia/Taipei
+      N8N_USER_MANAGEMENT_DISABLED: false
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+      N8N_HOST: n8n.uncle6.me
+      WEBHOOK_URL: https://n8n.uncle6.me
     depends_on:
       db:
         condition: service_healthy
+
+  playwright:
+    image: browserless/chrome
+    container_name: playwright_chrome
+    restart: always
 
   caddy:
     image: caddy:2-alpine
@@ -47,7 +157,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      - "443:443/udp" # for HTTP/3
+      - "443:443/udp"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
@@ -56,6 +166,5 @@ services:
       caddy run --config /etc/caddy/Caddyfile
 
 volumes:
-  postgres_data:
   caddy_data:
   caddy_config:

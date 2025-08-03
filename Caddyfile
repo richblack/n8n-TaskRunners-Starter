@@ -1,3 +1,11 @@
-n8n.uncle6.me, playwright.uncle6.me {
+n8n.uncle6.me {
 	reverse_proxy n8n:5678
+}
+
+playwright.uncle6.me {
+	reverse_proxy playwright:3000
+}
+
+studio.uncle6.me {
+	reverse_proxy studio:3000
 }
