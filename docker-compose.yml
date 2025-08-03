@@ -382,13 +382,6 @@ services:
       timeout: 5s
       interval: 5s
       retries: 3
-    environment:
-      # LOGFLARE_PUBLIC_ACCESS_TOKEN: ${LOGFLARE_PUBLIC_ACCESS_TOKEN} # Keep if you plan to use Logflare
-    command:
-      [
-        "--config",
-        "/etc/vector/vector.yml"
-      ]
     security_opt:
       - "label=disable"
 
