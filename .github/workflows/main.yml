@@ -16,18 +16,18 @@ jobs:
       - name: 2. Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: 3. Generate SSH Keys for Deployment
-        run: ssh-keygen -t rsa -b 4096 -f ~/.ssh/deploy_key -N ""
+      - name: 3. Generate SSH Key for Deployment
+        id: ssh_key
+        run: |
+          ssh-keygen -t rsa -b 4096 -f ~/.ssh/deploy_key -N ""
+          echo "pub_key=$(cat ~/.ssh/deploy_key.pub)" >> $GITHUB_OUTPUT
 
       - name: 4. Terraform Init & Apply
         id: terraform
         env:
           TF_VAR_linode_token: ${{ secrets.LINODE_TOKEN }}
           TF_VAR_root_password: ${{ secrets.SERVER_ROOT_PASSWORD }}
-          TF_VAR_authorized_keys: |
-            [ 
-              "${{ join(split(fromJSON(toJSON(cat('~/.ssh/deploy_key.pub'))), '\n'), '", "') }}"
-            ]
+          TF_VAR_authorized_keys: "[\"${{ steps.ssh_key.outputs.pub_key }}\"]"
         run: |
           terraform init
           terraform apply -auto-approve
