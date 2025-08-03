@@ -19,9 +19,11 @@ jobs:
           ssh-private-key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
 
       - name: 3. Add Server to known_hosts
+        env:
+          LINODE_IP: ${{ secrets.LINODE_SERVER_IP }}
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ secrets.LINODE_SERVER_IP }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H $LINODE_IP >> ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
       - name: 4. Clean up previous Docker containers and networks and db volume
