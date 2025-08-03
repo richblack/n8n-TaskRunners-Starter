@@ -234,6 +234,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+      start_period: 30s # Give the database more time to start
     environment:
       POSTGRES_HOST: localhost
       PGPORT: 5432

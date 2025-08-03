@@ -26,7 +26,7 @@ jobs:
           ssh-keyscan -H $LINODE_IP >> ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
-      - name: 4. Clean up previous Docker containers and networks and db volume
+      - name: 4. Clean up previous Docker containers and networks and all volumes
         run: |
           ssh root@${{ secrets.LINODE_SERVER_IP }} << 'EOF'
             cd /root || exit 0
@@ -38,9 +38,11 @@ jobs:
             if command -v docker &> /dev/null; then
               sudo docker system prune -f
               sudo docker network prune -f
+              sudo docker volume prune -f
+              sudo docker image prune -a -f
             fi
-            # Remove db volume data to ensure clean start
-            sudo rm -rf ./volumes/db/*
+            # Remove all volume data to ensure clean start
+            sudo rm -rf ./volumes/*
           EOF
 
       - name: 5. Install Docker if not present
@@ -83,6 +85,8 @@ jobs:
 
       - name: 7. Copy Files to Server
         run: |
+          # Create volumes directory before copying files
+          ssh root@${{ secrets.LINODE_SERVER_IP }} "mkdir -p /root/volumes/api /root/volumes/db /root/volumes/logs /root/volumes/pooler /root/volumes/storage /root/volumes/functions"
           scp -o StrictHostKeyChecking=no ./docker-compose.yml root@${{ secrets.LINODE_SERVER_IP }}:/root/
           scp -o StrictHostKeyChecking=no ./.env root@${{ secrets.LINODE_SERVER_IP }}:/root/
           scp -o StrictHostKeyChecking=no ./Caddyfile root@${{ secrets.LINODE_SERVER_IP }}:/root/
@@ -90,6 +94,6 @@ jobs:
       - name: 8. Start Services
         run: |
           ssh root@${{ secrets.LINODE_SERVER_IP }} << 'EOF'
-            cd /root
-            sudo docker compose up -d
+            # Use absolute path for docker compose command
+            /usr/local/bin/docker compose -f /root/docker-compose.yml up -d
           EOF
