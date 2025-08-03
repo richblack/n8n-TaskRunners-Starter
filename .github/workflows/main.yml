@@ -94,6 +94,12 @@ jobs:
       - name: 8. Start Services
         run: |
           ssh root@${{ secrets.LINODE_SERVER_IP }} << 'EOF'
-            # Use absolute path for docker compose command
-            /usr/local/bin/docker compose -f /root/docker-compose.yml up -d
+            cd /root
+            # Find the docker compose executable path dynamically
+            DOCKER_COMPOSE_PATH=$(command -v docker-compose || command -v docker compose)
+            if [ -z "$DOCKER_COMPOSE_PATH" ]; then
+              echo "Error: docker compose executable not found." >&2
+              exit 1
+            fi
+            sudo "$DOCKER_COMPOSE_PATH" -f /root/docker-compose.yml up -d
           EOF
