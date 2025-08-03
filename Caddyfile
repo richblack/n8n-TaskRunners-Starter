@@ -9,3 +9,7 @@ playwright.uncle6.me {
 studio.uncle6.me {
 	reverse_proxy studio:3000
 }
+
+api.uncle6.me {
+	reverse_proxy kong:8000
+}

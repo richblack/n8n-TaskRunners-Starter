@@ -4,13 +4,10 @@ services:
     container_name: supabase-studio
     image: supabase/studio:20240712
     restart: unless-stopped
-    ports:
-      - "4000:3000"
     environment:
       STUDIO_PG_META_URL: http://meta:8080
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      SUPABASE_URL: http://kong:8000
-      SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL}
+      SUPABASE_URL: ${SUPABASE_PUBLIC_URL}
       SUPABASE_ANON_KEY: ${ANON_KEY}
       SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
     depends_on:
@@ -18,11 +15,8 @@ services:
 
   kong:
     container_name: supabase-kong
-    image: kong:2.8.1
+    image: kong:3.4
     restart: unless-stopped
-    ports:
-      - "8000:8000"
-      - "8443:8443"
     environment:
       KONG_DATABASE: "off"
       KONG_DECLARATIVE_CONFIG: /var/lib/kong/kong.yml
@@ -38,7 +32,7 @@ services:
     environment:
       GOTRUE_API_HOST: 0.0.0.0
       GOTRUE_API_PORT: 9999
-      API_EXTERNAL_URL: http://localhost:8000
+      API_EXTERNAL_URL: ${SUPABASE_PUBLIC_URL}
       GOTRUE_DB_DRIVER: postgres
       GOTRUE_DB_DATABASE_URL: postgresql://supabase_auth_admin:${POSTGRES_PASSWORD}@db:5432/postgres
       GOTRUE_SITE_URL: ${SITE_URL:-http://localhost:3000}
@@ -50,7 +44,7 @@ services:
 
   rest:
     container_name: supabase-rest
-    image: postgrest/postgrest:v11.2.2
+    image: postgrest/postgrest:v12.0.2
     restart: unless-stopped
     environment:
       PGRST_DB_URI: postgresql://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
@@ -62,7 +56,7 @@ services:
 
   realtime:
     container_name: supabase-realtime
-    image: supabase/realtime:v2.8.9
+    image: supabase/realtime:v2.25.3
     restart: unless-stopped
     environment:
       DB_HOST: db
@@ -76,7 +70,7 @@ services:
 
   storage:
     container_name: supabase-storage
-    image: supabase/storage-api:v0.45.2
+    image: supabase/storage-api:v1.0.4
     restart: unless-stopped
     environment:
       ANON_KEY: ${ANON_KEY}
@@ -96,7 +90,7 @@ services:
 
   meta:
     container_name: supabase-meta
-    image: supabase/postgres-meta:v0.79.5
+    image: supabase/postgres-meta:v0.80.0
     restart: unless-stopped
     environment:
       PG_META_PORT: 8080
@@ -110,7 +104,7 @@ services:
 
   db:
     container_name: supabase-db
-    image: supabase/postgres:15.1.0.107
+    image: supabase/postgres:15.1.0.114
     restart: unless-stopped
     volumes:
       - ./volumes/db:/var/lib/postgresql/data

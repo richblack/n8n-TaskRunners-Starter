@@ -72,6 +72,7 @@ jobs:
           JWT_SECRET=${{ secrets.JWT_SECRET }}
           ANON_KEY=${{ secrets.ANON_KEY }}
           SERVICE_ROLE_KEY=${{ secrets.SERVICE_ROLE_KEY }}
+          SUPABASE_PUBLIC_URL=${{ secrets.SUPABASE_PUBLIC_URL }}
           N8N_ENCRYPTION_KEY=${{ secrets.N8N_ENCRYPTION_KEY }}
           EOF
 

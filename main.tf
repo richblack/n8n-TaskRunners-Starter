@@ -76,7 +76,7 @@ resource "linode_firewall" "n8n_firewall" {
 
 # 建立一台 Linode 虛擬機實例
 resource "linode_instance" "n8n_server" {
-  label      = "n8n-supabase-psql-server"
+  label      = "n8n.uncle6.me"
   image      = "linode/ubuntu22.04" # 使用 Ubuntu 22.04 LTS
   region     = "ap-northeast"       # 您可以更換成您偏好的區域, e.g., us-central, eu-west
   type       = "g6-nanode-1"        # 這是最小的方案 (1GB RAM)，您可以根據需求調整
