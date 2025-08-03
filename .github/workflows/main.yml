@@ -13,79 +13,31 @@ jobs:
       - name: 1. Checkout Code
         uses: actions/checkout@v4
 
-      - name: 2. Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      - name: 2. Setup SSH Key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
 
-      - name: 3. Generate SSH Key for Deployment
-        id: ssh_key
+      - name: 3. Add Server to known_hosts
         run: |
-          ssh-keygen -t rsa -b 4096 -f ~/.ssh/deploy_key -N ""
-          echo "pub_key=$(cat ~/.ssh/deploy_key.pub)" >> $GITHUB_OUTPUT
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.LINODE_SERVER_IP }} >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
 
-      - name: 4. Terraform Init & Apply
-        id: terraform
-        env:
-          TF_VAR_linode_token: ${{ secrets.LINODE_TOKEN }}
-          TF_VAR_root_password: ${{ secrets.SERVER_ROOT_PASSWORD }}
-          TF_VAR_authorized_keys: "[\"${{ steps.ssh_key.outputs.pub_key }}\"]"
+      - name: 4. Clean up previous Docker containers and networks
         run: |
-          terraform init
-          terraform apply -auto-approve
-          echo "instance_ip=$(terraform output -raw instance_ip)" >> $GITHUB_OUTPUT
-
-      - name: 5. Wait for SSH to be ready
-        run: |
-          echo "Waiting for server to be ready..."
-          for i in {1..30}; do
-            if ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key root@${{ steps.terraform.outputs.instance_ip }} "echo 'SSH is ready'"; then
-              echo "Server is ready!"
-              break
+          ssh deployer@${{ secrets.LINODE_SERVER_IP }} << 'EOF'
+            cd /home/deployer || exit 0
+            if docker compose ps &> /dev/null; then
+              sudo docker compose down -v --remove-orphans
             fi
-            echo "Attempt $i: SSH not ready yet, waiting 5 seconds..."
-            sleep 5
-          done
-
-      - name: 6. Setup Secure Deploy User on Server
-        run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key root@${{ steps.terraform.outputs.instance_ip }} << 'EOF'
-            # Create a new user 'deployer'
-            if ! id -u deployer >/dev/null 2>&1; then
-              useradd -m -s /bin/bash deployer
-              # Add user to sudo group
-              usermod -aG sudo deployer
-              # Add user to docker group
-              usermod -aG docker deployer
-              # Copy authorized_keys from root to the new user
-              mkdir -p /home/deployer/.ssh
-              cp /root/.ssh/authorized_keys /home/deployer/.ssh/
-              chown -R deployer:deployer /home/deployer/.ssh
-              # Allow sudo without password for the deployer user
-              echo 'deployer ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
-            fi
+            sudo docker system prune -f
+            sudo docker network prune -f
           EOF
 
-      - name: 7. Create .env file from Secrets
+      - name: 5. Install Docker if not present
         run: |
-          echo "Creating .env file..."
-          cat << EOF > .env
-          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-          JWT_SECRET=${{ secrets.JWT_SECRET }}
-          ANON_KEY=${{ secrets.ANON_KEY }}
-          SERVICE_ROLE_KEY=${{ secrets.SERVICE_ROLE_KEY }}
-          SUPABASE_PUBLIC_URL=${{ secrets.SUPABASE_PUBLIC_URL }}
-          N8N_ENCRYPTION_KEY=${{ secrets.N8N_ENCRYPTION_KEY }}
-          EOF
-
-      - name: 8. Copy Files to Server as Deploy User
-        run: |
-          scp -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key ./docker-compose.yml deployer@${{ steps.terraform.outputs.instance_ip }}:/home/deployer/
-          scp -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key ./.env deployer@${{ steps.terraform.outputs.instance_ip }}:/home/deployer/
-          scp -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key ./Caddyfile deployer@${{ steps.terraform.outputs.instance_ip }}:/home/deployer/
-
-      - name: 9. Install Docker and Run Services as Deploy User
-        run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key deployer@${{ steps.terraform.outputs.instance_ip }} << 'EOF'
-            # Install Docker if not present
+          ssh deployer@${{ secrets.LINODE_SERVER_IP }} << 'EOF'
             if ! command -v docker &> /dev/null
             then
                 echo "Docker not found, installing..."
@@ -101,8 +53,31 @@ jobs:
                 sudo apt-get update
                 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
             fi
-            
-            # Go to the project directory and start services
+          EOF
+
+      - name: 6. Create .env file from Secrets
+        run: |
+          echo "Creating .env file..."
+          cat << EOF > .env
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          ANON_KEY=${{ secrets.ANON_KEY }}
+          SERVICE_ROLE_KEY=${{ secrets.SERVICE_ROLE_KEY }}
+          SUPABASE_PUBLIC_URL=${{ secrets.SUPABASE_PUBLIC_URL }}
+          N8N_ENCRYPTION_KEY=${{ secrets.N8N_ENCRYPTION_KEY }}
+          SECRET_KEY_BASE=${{ secrets.SECRET_KEY_BASE }}
+          VAULT_ENC_KEY=${{ secrets.VAULT_ENC_KEY }}
+          EOF
+
+      - name: 7. Copy Files to Server
+        run: |
+          scp -o StrictHostKeyChecking=no ./docker-compose.yml deployer@${{ secrets.LINODE_SERVER_IP }}:/home/deployer/
+          scp -o StrictHostKeyChecking=no ./.env deployer@${{ secrets.LINODE_SERVER_IP }}:/home/deployer/
+          scp -o StrictHostKeyChecking=no ./Caddyfile deployer@${{ secrets.LINODE_SERVER_IP }}:/home/deployer/
+
+      - name: 8. Start Services
+        run: |
+          ssh deployer@${{ secrets.LINODE_SERVER_IP }} << 'EOF'
             cd /home/deployer
             sudo docker compose up -d
           EOF

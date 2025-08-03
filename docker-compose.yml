@@ -18,7 +18,6 @@ services:
       interval: 5s
       retries: 3
     depends_on:
-      # Removed dependency on analytics
       meta:
         condition: service_healthy
     environment:
@@ -27,7 +26,6 @@ services:
 
       DEFAULT_ORGANIZATION_NAME: "Supabase"
       DEFAULT_PROJECT_NAME: "Default Project"
-      # OPENAI_API_KEY: ${OPENAI_API_KEY:-} # Keep if you plan to use OpenAI features
 
       SUPABASE_URL: http://kong:8000
       SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL}
@@ -35,8 +33,6 @@ services:
       SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
       AUTH_JWT_SECRET: ${JWT_SECRET}
 
-      # LOGFLARE_PRIVATE_ACCESS_TOKEN: ${LOGFLARE_PRIVATE_ACCESS_TOKEN} # Keep if you plan to use Logflare
-      # LOGFLARE_URL: http://analytics:4000 # Removed analytics dependency
       NEXT_PUBLIC_ENABLE_LOGS: true
       NEXT_ANALYTICS_BACKEND_PROVIDER: postgres
 
@@ -49,7 +45,6 @@ services:
       - 8443:8443/tcp
     volumes:
       - ./volumes/api/kong.yml:/home/kong/temp.yml:ro,z
-    # Removed dependency on analytics
     environment:
       KONG_DATABASE: "off"
       KONG_DECLARATIVE_CONFIG: /home/kong/kong.yml
@@ -81,7 +76,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      # Removed dependency on analytics
     environment:
       GOTRUE_API_HOST: 0.0.0.0
       GOTRUE_API_PORT: 9999
@@ -90,8 +84,7 @@ services:
       GOTRUE_DB_DRIVER: postgres
       GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@db:5432/postgres
 
-      GOTRUE_SITE_URL: https://n8n.uncle6.me # Using n8n's domain as the primary site URL for auth
-      # GOTRUE_URI_ALLOW_LIST: ${ADDITIONAL_REDIRECT_URLS} # Keep if you need specific redirect URLs
+      GOTRUE_SITE_URL: https://n8n.uncle6.me
       GOTRUE_DISABLE_SIGNUP: "false"
 
       GOTRUE_JWT_ADMIN_ROLES: service_role
@@ -114,7 +107,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      # Removed dependency on analytics
     environment:
       PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
       PGRST_DB_SCHEMAS: public,storage,graphql_public
@@ -135,7 +127,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      # Removed dependency on analytics
     healthcheck:
       test:
         [
@@ -194,7 +185,6 @@ services:
         condition: service_healthy
       rest:
         condition: service_started
-      # Removed dependency on imgproxy
     environment:
       ANON_KEY: ${ANON_KEY}
       SERVICE_KEY: ${SERVICE_ROLE_KEY}
@@ -208,7 +198,6 @@ services:
       REGION: stub
       GLOBAL_S3_BUCKET: stub
       ENABLE_IMAGE_TRANSFORMATION: "true"
-      # IMGPROXY_URL: http://imgproxy:5001 # Removed imgproxy dependency
 
   meta:
     container_name: supabase-meta
@@ -217,7 +206,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      # Removed dependency on analytics
     environment:
       PG_META_PORT: 8080
       PG_META_DB_HOST: db
@@ -253,12 +241,12 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-    # Removed dependency on vector
     environment:
       POSTGRES_HOST: /var/run/postgresql
       PGPORT: 5432
       POSTGRES_PORT: 5432
       PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: postgres
       POSTGRES_DB: postgres
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXP: 3600
