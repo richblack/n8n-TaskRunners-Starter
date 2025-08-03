@@ -11,13 +11,16 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
-n8n:
+  n8n:
     image: n8nio/n8n
     container_name: n8n_app
     restart: always
-    ports:
-      - "5678:5678"
     environment:
       # 連接到同一個 Docker 網路中的 'db' 服務
       - DB_TYPE=postgresdb
@@ -32,8 +35,30 @@ n8n:
       - N8N_USER_MANAGEMENT_DISABLED=false
       # 用於加密敏感資料的金鑰，必須設定
       - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      # 設定 n8n 的主機名稱和 Webhook URL，使其能正確地與反向代理協作
+      - N8N_HOST=${N8N_DOMAIN}
+      - WEBHOOK_URL=https://${N8N_DOMAIN}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy_proxy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # for HTTP/3
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      - N8N_DOMAIN=${N8N_DOMAIN}
+    command: >
+      caddy reverse-proxy --from ${N8N_DOMAIN} --to n8n:5678
 
 volumes:
   postgres_data:
+  caddy_data:
+  caddy_config:

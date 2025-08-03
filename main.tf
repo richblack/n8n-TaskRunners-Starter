@@ -71,14 +71,7 @@ resource "linode_firewall" "n8n_firewall" {
     ipv6     = ["::/0"]
   }
 
-  inbound {
-    label    = "allow-n8n"
-    action   = "ACCEPT"
-    protocol = "TCP"
-    ports    = "5678"
-    ipv4     = ["0.0.0.0/0"]
-    ipv6     = ["::/0"]
-  }
+  
 }
 
 # 建立一台 Linode 虛擬機實例
