@@ -88,7 +88,7 @@ jobs:
           POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}
           POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}
           POSTGRES_DB=${{ secrets.POSTGRES_DB }}
-          ADDITIONAL_REDIRECT_URLS=${{ secrets.ADDITIONAL_REDIRECT_URLS }}
+          
           EOF
 
       - name: 7. Copy Files to Server
