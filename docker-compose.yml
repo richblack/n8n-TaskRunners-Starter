@@ -54,7 +54,10 @@ services:
       KONG_NGINX_PROXY_PROXY_BUFFERS: 64 160k
       SUPABASE_ANON_KEY: ${ANON_KEY}
       SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
-    entrypoint: bash -c 'eval "echo "$$(cat ~/temp.yml)"" > ~/kong.yml && /docker-entrypoint.sh kong docker-start'
+      DASHBOARD_USERNAME: admin
+      DASHBOARD_PASSWORD: password
+    user: root
+    entrypoint: ["/bin/sh", "-c", "apk add --no-cache gettext && envsubst < /home/kong/temp.yml > /home/kong/kong.yml && /docker-entrypoint.sh kong docker-start"]
 
   auth:
     container_name: supabase-auth
