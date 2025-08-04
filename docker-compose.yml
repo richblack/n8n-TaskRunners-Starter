@@ -153,6 +153,11 @@ services:
     container_name: supabase-rest
     image: postgrest/postgrest:v12.2.12
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     depends_on:
       db:
         condition: service_healthy
