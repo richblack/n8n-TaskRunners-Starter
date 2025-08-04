@@ -8,3 +8,25 @@
 
 # 忽略 macOS 系統檔案
 .DS_Store
+official_docker_ref/.env.example
+official_docker_ref/.gitignore
+official_docker_ref/docker-compose.s3.yml
+official_docker_ref/docker-compose.yml
+official_docker_ref/README.md
+official_docker_ref/reset.sh
+official_docker_ref/dev/data.sql
+official_docker_ref/dev/docker-compose.dev.yml
+official_docker_ref/volumes/api/kong.yml
+official_docker_ref/volumes/db/_supabase.sql
+official_docker_ref/volumes/db/jwt.sql
+official_docker_ref/volumes/db/logs.sql
+official_docker_ref/volumes/db/pooler.sql
+official_docker_ref/volumes/db/realtime.sql
+official_docker_ref/volumes/db/roles.sql
+official_docker_ref/volumes/db/webhooks.sql
+official_docker_ref/volumes/db/init/data.sql
+official_docker_ref/volumes/functions/hello/index.ts
+official_docker_ref/volumes/functions/main/index.ts
+official_docker_ref/volumes/logs/vector.yml
+official_docker_ref/volumes/pooler/pooler.exs
+official_docker_ref/
