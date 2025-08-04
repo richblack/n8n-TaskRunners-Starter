@@ -32,8 +32,9 @@ jobs:
             cd /root || exit 0
             # Stop and remove existing containers
             if command -v docker &> /dev/null && sudo docker compose ps &> /dev/null; then
-              sudo docker compose down -v --remove-orphans
+              sudo docker compose down -v --remove-orphans || true
             fi
+            sudo docker rm -f supabase-db || true
             # Clean up Docker system
             if command -v docker &> /dev/null; then
               sudo docker system prune -f
