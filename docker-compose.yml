@@ -154,7 +154,7 @@ services:
     image: postgrest/postgrest:v12.2.12
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -219,7 +219,7 @@ services:
       timeout: 5s
       retries: 10
     environment:
-      POSTGRES_HOST: /var/run/postgresql
+      
       PGPORT: 5432
       POSTGRES_PORT: 5432
       PGPASSWORD: ${POSTGRES_PASSWORD}
