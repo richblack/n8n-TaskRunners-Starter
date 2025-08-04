@@ -81,15 +81,51 @@ jobs:
           N8N_ENCRYPTION_KEY=${{ secrets.N8N_ENCRYPTION_KEY }}
           SECRET_KEY_BASE=${{ secrets.SECRET_KEY_BASE }}
           VAULT_ENC_KEY=${{ secrets.VAULT_ENC_KEY }}
+          STUDIO_DEFAULT_ORGANIZATION=${{ secrets.STUDIO_DEFAULT_ORGANIZATION }}
+          STUDIO_DEFAULT_PROJECT=${{ secrets.STUDIO_DEFAULT_PROJECT }}
+          OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+          KONG_HTTP_PORT=${{ secrets.KONG_HTTP_PORT }}
+          KONG_HTTPS_PORT=${{ secrets.KONG_HTTPS_PORT }}
+          DASHBOARD_USERNAME=${{ secrets.DASHBOARD_USERNAME }}
+          DASHBOARD_PASSWORD=${{ secrets.DASHBOARD_PASSWORD }}
+          API_EXTERNAL_URL=${{ secrets.API_EXTERNAL_URL }}
+          POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}
+          POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}
+          POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+          SITE_URL=${{ secrets.SITE_URL }}
+          ADDITIONAL_REDIRECT_URLS=${{ secrets.ADDITIONAL_REDIRECT_URLS }}
+          DISABLE_SIGNUP=${{ secrets.DISABLE_SIGNUP }}
+          JWT_EXPIRY=${{ secrets.JWT_EXPIRY }}
+          ENABLE_EMAIL_SIGNUP=${{ secrets.ENABLE_EMAIL_SIGNUP }}
+          ENABLE_ANONYMOUS_USERS=${{ secrets.ENABLE_ANONYMOUS_USERS }}
+          ENABLE_EMAIL_AUTOCONFIRM=${{ secrets.ENABLE_EMAIL_AUTOCONFIRM }}
+          SMTP_ADMIN_EMAIL=${{ secrets.SMTP_ADMIN_EMAIL }}
+          SMTP_HOST=${{ secrets.SMTP_HOST }}
+          SMTP_PORT=${{ secrets.SMTP_PORT }}
+          SMTP_USER=${{ secrets.SMTP_USER }}
+          SMTP_PASS=${{ secrets.SMTP_PASS }}
+          SMTP_SENDER_NAME=${{ secrets.SMTP_SENDER_NAME }}
+          MAILER_URLPATHS_INVITE=${{ secrets.MAILER_URLPATHS_INVITE }}
+          MAILER_URLPATHS_CONFIRMATION=${{ secrets.MAILER_URLPATHS_CONFIRMATION }}
+          MAILER_URLPATHS_RECOVERY=${{ secrets.MAILER_URLPATHS_RECOVERY }}
+          MAILER_URLPATHS_EMAIL_CHANGE=${{ secrets.MAILER_URLPATHS_EMAIL_CHANGE }}
+          ENABLE_PHONE_SIGNUP=${{ secrets.ENABLE_PHONE_SIGNUP }}
+          ENABLE_PHONE_AUTOCONFIRM=${{ secrets.ENABLE_PHONE_AUTOCONFIRM }}
+          PGRST_DB_SCHEMAS=${{ secrets.PGRST_DB_SCHEMAS }}
           EOF
 
       - name: 7. Copy Files to Server
         run: |
           # Create volumes directory before copying files
-          ssh root@${{ secrets.LINODE_SERVER_IP }} "mkdir -p /root/volumes/api /root/volumes/db /root/volumes/logs /root/volumes/pooler /root/volumes/storage /root/volumes/functions"
+          ssh root@${{ secrets.LINODE_SERVER_IP }} "mkdir -p /root/volumes/api /root/volumes/db"
           scp -o StrictHostKeyChecking=no ./docker-compose.yml root@${{ secrets.LINODE_SERVER_IP }}:/root/
           scp -o StrictHostKeyChecking=no ./.env root@${{ secrets.LINODE_SERVER_IP }}:/root/
           scp -o StrictHostKeyChecking=no ./Caddyfile root@${{ secrets.LINODE_SERVER_IP }}:/root/
+          scp -o StrictHostKeyChecking=no ./volumes/api/kong.yml root@${{ secrets.LINODE_SERVER_IP }}:/root/volumes/api/
+          scp -o StrictHostKeyChecking=no ./volumes/db/_supabase.sql root@${{ secrets.LINODE_SERVER_IP }}:/root/volumes/db/
+          scp -o StrictHostKeyChecking=no ./volumes/db/jwt.sql root@${{ secrets.LINODE_SERVER_IP }}:/root/volumes/db/
+          scp -o StrictHostKeyChecking=no ./volumes/db/roles.sql root@${{ secrets.LINODE_SERVER_IP }}:/root/volumes/db/
+          scp -o StrictHostKeyChecking=no ./volumes/db/webhooks.sql root@${{ secrets.LINODE_SERVER_IP }}:/root/volumes/db/
 
       - name: 8. Start Services
         run: |
