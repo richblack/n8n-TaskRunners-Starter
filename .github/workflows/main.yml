@@ -81,8 +81,6 @@ jobs:
           N8N_ENCRYPTION_KEY=${{ secrets.N8N_ENCRYPTION_KEY }}
           SECRET_KEY_BASE=${{ secrets.SECRET_KEY_BASE }}
           VAULT_ENC_KEY=${{ secrets.VAULT_ENC_KEY }}
-          STUDIO_DEFAULT_ORGANIZATION=${{ secrets.STUDIO_DEFAULT_ORGANIZATION }}
-          STUDIO_DEFAULT_PROJECT=${{ secrets.STUDIO_DEFAULT_PROJECT }}
           OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
           KONG_HTTP_PORT=${{ secrets.KONG_HTTP_PORT }}
           KONG_HTTPS_PORT=${{ secrets.KONG_HTTPS_PORT }}
@@ -94,11 +92,7 @@ jobs:
           POSTGRES_DB=${{ secrets.POSTGRES_DB }}
           SITE_URL=${{ secrets.SITE_URL }}
           ADDITIONAL_REDIRECT_URLS=${{ secrets.ADDITIONAL_REDIRECT_URLS }}
-          DISABLE_SIGNUP=${{ secrets.DISABLE_SIGNUP }}
           JWT_EXPIRY=${{ secrets.JWT_EXPIRY }}
-          ENABLE_EMAIL_SIGNUP=${{ secrets.ENABLE_EMAIL_SIGNUP }}
-          ENABLE_ANONYMOUS_USERS=${{ secrets.ENABLE_ANONYMOUS_USERS }}
-          ENABLE_EMAIL_AUTOCONFIRM=${{ secrets.ENABLE_EMAIL_AUTOCONFIRM }}
           SMTP_ADMIN_EMAIL=${{ secrets.SMTP_ADMIN_EMAIL }}
           SMTP_HOST=${{ secrets.SMTP_HOST }}
           SMTP_PORT=${{ secrets.SMTP_PORT }}
@@ -109,9 +103,6 @@ jobs:
           MAILER_URLPATHS_CONFIRMATION=${{ secrets.MAILER_URLPATHS_CONFIRMATION }}
           MAILER_URLPATHS_RECOVERY=${{ secrets.MAILER_URLPATHS_RECOVERY }}
           MAILER_URLPATHS_EMAIL_CHANGE=${{ secrets.MAILER_URLPATHS_EMAIL_CHANGE }}
-          ENABLE_PHONE_SIGNUP=${{ secrets.ENABLE_PHONE_SIGNUP }}
-          ENABLE_PHONE_AUTOCONFIRM=${{ secrets.ENABLE_PHONE_AUTOCONFIRM }}
-          PGRST_DB_SCHEMAS=${{ secrets.PGRST_DB_SCHEMAS }}
           EOF
 
       - name: 7. Copy Files to Server
