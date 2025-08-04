@@ -86,9 +86,7 @@ jobs:
           KONG_HTTPS_PORT=${{ secrets.KONG_HTTPS_PORT }}
           DASHBOARD_USERNAME=${{ secrets.DASHBOARD_USERNAME }}
           DASHBOARD_PASSWORD=${{ secrets.DASHBOARD_PASSWORD }}
-          POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}
-          POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}
-          POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+          
           
           EOF
 

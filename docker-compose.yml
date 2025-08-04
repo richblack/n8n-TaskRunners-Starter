@@ -215,12 +215,12 @@ services:
       retries: 10
     environment:
       POSTGRES_HOST: /var/run/postgresql
-      PGPORT: ${POSTGRES_PORT}
-      POSTGRES_PORT: ${POSTGRES_PORT}
+      PGPORT: 5432
+      POSTGRES_PORT: 5432
       PGPASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      PGDATABASE: ${POSTGRES_DB}
-      POSTGRES_DB: ${POSTGRES_DB}
+      PGDATABASE: postgres
+      POSTGRES_DB: postgres
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRY: ${JWT_EXPIRY}
     command:
