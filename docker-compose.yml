@@ -219,7 +219,14 @@ services:
     image: supabase/postgres:15.8.1.060
     restart: unless-stopped
     volumes:
+      - ./volumes/db/realtime.sql:/docker-entrypoint-initdb.d/migrations/99-realtime.sql:Z
+      - ./volumes/db/webhooks.sql:/docker-entrypoint-initdb.d/init-scripts/98-webhooks.sql:Z
+      - ./volumes/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:Z
+      - ./volumes/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:Z
       - ./volumes/db/data:/var/lib/postgresql/data:Z
+      - ./volumes/db/_supabase.sql:/docker-entrypoint-initdb.d/migrations/97-_supabase.sql:Z
+      - ./volumes/db/logs.sql:/docker-entrypoint-initdb.d/migrations/99-logs.sql:Z
+      - ./volumes/db/pooler.sql:/docker-entrypoint-initdb.d/migrations/99-pooler.sql:Z
       - db-config:/etc/postgresql-custom
     healthcheck:
       test:
@@ -227,22 +234,21 @@ services:
         "CMD",
         "pg_isready",
         "-U",
-        "supabase_admin",
+        "postgres",
         "-h",
         "localhost"
         ]
       interval: 5s
       timeout: 5s
       retries: 10
-      start_period: 30s # Give the database more time to start
     environment:
-      POSTGRES_HOST: localhost
+      POSTGRES_HOST: /var/run/postgresql
       PGPORT: 5432
       POSTGRES_PORT: 5432
       PGPASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       PGDATABASE: postgres
       POSTGRES_DB: postgres
-      POSTGRES_USER: supabase_admin
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXP: 3600
     command:
