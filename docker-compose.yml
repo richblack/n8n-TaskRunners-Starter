@@ -266,11 +266,6 @@ services:
       db:
         condition: service_healthy
 
-  playwright:
-    image: browserless/chrome
-    container_name: playwright_chrome
-    restart: always
-
   caddy:
     image: caddy:2-alpine
     container_name: caddy_proxy
