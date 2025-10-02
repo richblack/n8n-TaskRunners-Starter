@@ -247,9 +247,11 @@ services:
 
   # -- Your Custom Services --
   n8n:
-    image: n8nio/n8n
+    image: n8nio/n8n:latest
     container_name: n8n_app
     restart: always
+    volumes:
+      - supabase-n8n-minimal_n8n_data:/home/node/.n8n
     environment:
       DB_TYPE: postgresdb
       DB_POSTGRESDB_HOST: db
@@ -259,9 +261,14 @@ services:
       DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD}
       GENERIC_TIMEZONE: Asia/Taipei
       N8N_USER_MANAGEMENT_DISABLED: false
-      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+      N8N_ENCRYPTION_KEY: iE1dGMZQsK8IPCt6pvIi4X+eFxhb7lbs
       N8N_HOST: ${N8N_HOST}
       WEBHOOK_URL: ${WEBHOOK_URL}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.n8n.rule=Host(`n8n.uncle6.me`)"
+      - "traefik.http.routers.n8n.tls.certresolver=letsencrypt"
+      - "traefik.http.services.n8n.loadbalancer.server.port=5678"
     depends_on:
       db:
         condition: service_healthy
@@ -285,3 +292,5 @@ volumes:
   db-config:
   caddy_data:
   caddy_config:
+  supabase-n8n-minimal_n8n_data:
+    external: true
