@@ -154,3 +154,31 @@ docker compose up -d task-runners
 ## 授權
 
 MIT License
+
+## Zeabur 部署指南
+
+由於 n8n v2.0+ 架構包含三個核心服務（Main, Database, Worker），在 Zeabur 部署時請遵循以下步驟：
+
+### 重點說明
+此專案會建立三個服務：
+1. **n8n-stack-db** (PostgreSQL)
+2. **n8n-stack-n8n** (主程式)
+3. **n8n-stack-task-runners** (Python Worker)
+
+### 部署步驟
+
+1. **建立專案**：在 Zeabur 建立一個新專案。
+2. **部署服務**：
+    - 選擇 **Deploy New Service** -> **Git**。
+    - 選擇此儲存庫。
+    - Zeabur 應會自動偵測到 `docker-compose.yml` 並詢問是否要部署所有服務，請確認三個服務都被勾選。
+3. **環境變數設定**：
+    - 服務建立後，請到各個服務的 "Settings" -> "Environment Variables" 設定 `.env` 中提到的變數。
+    - 特別注意 `POSTGRES_PASSWORD` 和 `N8N_ENCRYPTION_KEY` 必須在相關服務中一致。
+    - Zeabur 會自動處理內部網路連線，通常不需要修改 host 設定，但請確認 `DB_POSTGRESDB_HOST` 指向正確的資料庫服務名稱（Zeabur 可能會加上前綴，如 `n8n-stack-db`）。
+
+### 常見問題：只出現一個服務？
+如果在部署時 Zeabur 沒有自動建立三個服務，請嘗試：
+- 進入專案設定，確認是否使用了 "Docker Compose" 模式。
+- 如果 Zeabur 只抓到了 `Dockerfile` (Task Runner)，請手動透過 "Add Service" -> "Prebuilt" 加入 PostgreSQL，並透過 "Add Service" -> "Docker" 加入 n8n 主程式，然後手動串接。但最推薦的方式是確保 Zeabur 正確讀取 `docker-compose.yml`。
+

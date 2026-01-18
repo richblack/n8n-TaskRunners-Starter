@@ -5,7 +5,12 @@ name: n8n-stack
 
 services:
 
+  # Note for Zeabur:
+  # Zeabur will deploy 3 services based on this compose file.
+  # Ensure you are using the "Docker Compose" deployment type if not auto-detected.
+
   db:
+    container_name: n8n-db
     image: postgres:15-alpine
     restart: unless-stopped
     volumes:
@@ -21,6 +26,7 @@ services:
       retries: 10
 
   n8n:
+    container_name: n8n-app
     image: n8nio/n8n:2.2.3
     restart: always
     ports:
@@ -52,6 +58,7 @@ services:
         condition: service_healthy
 
   task-runners:
+    container_name: n8n-python-runner
     build:
       context: ./task-runner
     restart: always
