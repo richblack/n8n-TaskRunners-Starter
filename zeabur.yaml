@@ -2,98 +2,151 @@
 apiVersion: zeabur.com/v1
 kind: Template
 metadata:
-  name: n8n-task-runners-starter
+  name: n8n-starter-custom-libs
 spec:
-  description: n8n workflow automation tool with Python task runners and PostgreSQL.
-  icon: https://raw.githubusercontent.com/n8n-io/n8n/master/assets/n8n-logo.png
+  description: n8n v2 with PostgreSQL and Custom Python Task Runner (Supports custom pip packages).
+  icon: https://i.imgur.com/KUcP61Z.png
+  coverImage: https://i.imgur.com/Hm4GdsP.png
   readme: |
-    # n8n Task Runners Starter
-    Deploy n8n with PostgreSQL and a dedicated Python Task Runner on Zeabur.
+    # n8n Starter with Custom Python Libraries
+    
+    A simplified n8n v2 setup designed for education and customization.
+    
+    ## Features
+    - **n8n Main**: Workflow automation engine.
+    - **PostgreSQL**: Robust database.
+    - **Custom Task Runner**: **Git-based deployment** allows you to install ANY Python library (pandas, numpy, etc.) by editing `task-runner/Dockerfile` or `requirements.txt`.
+    
+    ## How to install Custom Libraries?
+    1. Fork this repository.
+    2. Edit `task-runner/Dockerfile`.
+    3. Add your `pip install` commands.
+    4. Zeabur will automatically rebuild the runner.
+
   services:
-    - name: n8n-db
-      icon: https://raw.githubusercontent.com/zeabur/zeabur/main/dashboard/public/logos/postgresql.svg
+    - name: postgresql
+      icon: https://raw.githubusercontent.com/zeabur/service-icons/main/marketplace/postgresql.svg
       template: PREBUILT
       spec:
         source:
           image: postgres:15-alpine
         ports:
-          - port: 5432
+          - id: database
+            port: 5432
             type: TCP
         env:
-          - key: POSTGRES_USER
-            value: postgres
-          - key: POSTGRES_PASSWORD
-            value: ${POSTGRES_PASSWORD}
-          - key: POSTGRES_DB
-            value: n8n
+          POSTGRES_USER:
+            default: postgres
+          POSTGRES_PASSWORD:
+            default: ${POSTGRES_PASSWORD}
+          POSTGRES_DB:
+            default: n8n
+          PGDATA:
+             default: /var/lib/postgresql/data/pgdata
         volumes:
-          - id: postgres-data
+          - id: data
             dir: /var/lib/postgresql/data
+        instructions:
+          - type: TEXT
+            title: Connection String
+            content: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${PORT_FORWARDED_HOSTNAME}:${DATABASE_PORT_FORWARDED_PORT}/${POSTGRES_DB}
+          - type: TEXT
+            title: PostgreSQL Connect Command
+            content: psql "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${PORT_FORWARDED_HOSTNAME}:${DATABASE_PORT_FORWARDED_PORT}/${POSTGRES_DB}"
+          - type: TEXT
+            title: PostgreSQL username
+            content: ${POSTGRES_USER}
+            category: Credentials
+          - type: PASSWORD
+            title: PostgresSQL password
+            content: ${POSTGRES_PASSWORD}
+            category: Credentials
+          - type: TEXT
+            title: PostgresSQL database
+            content: ${POSTGRES_DB}
+            category: Credentials
+          - type: TEXT
+            title: PostgreSQL host
+            content: ${PORT_FORWARDED_HOSTNAME}
+            category: Hostname & Port
+          - type: TEXT
+            title: PostgreSQL port
+            content: ${DATABASE_PORT_FORWARDED_PORT}
+            category: Hostname & Port
 
     - name: n8n-app
-      icon: https://raw.githubusercontent.com/n8n-io/n8n/master/assets/n8n-logo.png
+      icon: https://i.imgur.com/KUcP61Z.png
       template: PREBUILT
       spec:
         source:
           image: n8nio/n8n:2.2.3
         ports:
-          - port: 5678
+          - id: web
+            port: 5678
             type: HTTP
+          - id: taskbroker
+            port: 5679
+            type: TCP
         env:
-          - key: DB_TYPE
-            value: postgresdb
-          - key: DB_POSTGRESDB_HOST
-            value: n8n-db
-          - key: DB_POSTGRESDB_PORT
-            value: "5432"
-          - key: DB_POSTGRESDB_DATABASE
-            value: n8n
-          - key: DB_POSTGRESDB_USER
-            value: postgres
-          - key: DB_POSTGRESDB_PASSWORD
-            value: ${POSTGRES_PASSWORD}
-          - key: N8N_ENCRYPTION_KEY
-            value: ${N8N_ENCRYPTION_KEY}
-          - key: N8N_HOST
-            value: ${ZEABUR_WEB_URL}
-          - key: WEBHOOK_URL
-            value: https://${ZEABUR_WEB_URL}
-          - key: N8N_RUNNERS_ENABLED
-            value: "true"
-          - key: N8N_RUNNERS_MODE
-            value: external
-          - key: N8N_RUNNERS_BROKER_LISTEN_ADDRESS
-            value: 0.0.0.0
-          - key: N8N_RUNNERS_AUTH_TOKEN
-            value: ${TASK_RUNNER_AUTH_TOKEN}
+          DB_TYPE:
+            default: postgresdb
+          DB_POSTGRESDB_HOST:
+            default: postgresql
+          DB_POSTGRESDB_PORT:
+            default: "5432"
+          DB_POSTGRESDB_DATABASE:
+            default: n8n
+          DB_POSTGRESDB_USER:
+            default: postgres
+          DB_POSTGRESDB_PASSWORD:
+            default: ${POSTGRES_PASSWORD}
+          
+          # Connection Timeout Increase (Fix for race condition)
+          DB_POSTGRESDB_CONNECTION_TIMEOUT:
+            default: "30000"
+
+          N8N_ENCRYPTION_KEY:
+            default: ${N8N_ENCRYPTION_KEY}
+          N8N_HOST:
+            default: ${ZEABUR_WEB_DOMAIN}
+          WEBHOOK_URL:
+            default: ${ZEABUR_WEB_URL}
+          
+          # Runner Configuration
+          N8N_RUNNERS_ENABLED:
+            default: "true"
+          N8N_RUNNERS_MODE:
+            default: external
+          N8N_RUNNERS_BROKER_LISTEN_ADDRESS:
+            default: 0.0.0.0
+          N8N_RUNNERS_AUTH_TOKEN:
+            default: ${TASK_RUNNER_AUTH_TOKEN}
         volumes:
           - id: n8n-data
             dir: /home/node/.n8n
+        instructions:
+          - type: TEXT
+            title: n8n Webhook URL
+            content: https://${ZEABUR_WEB_URL}
       dependencies:
-        - n8n-db
+        - postgresql
 
     - name: n8n-python-runner
-      icon: https://www.python.org/static/community_logos/python-logo-generic.svg
+      icon: https://i.imgur.com/KUcP61Z.png
       template: GIT
       spec:
         source:
-          # Assuming the user will push this repo and use it as the source
-          # For a public template, this would normally be a full HTTPS URL to a public repo
-          # But in a local template definition, GIT usually refers to "this" repo or specific provider
-          # For Zeabur template spec, GIT source requires a 'url' usually.
-          # We will use the generic 'branch' and 'dir' configs hoping it picks up the context or user fills it.
-          # However, for a user-created template, they often point to their OWN GitHub repo.
-          # Updated with user provided repo.
-          url: https://github.com/richblack/n8n-TaskRunners-Starter
+          source: GITHUB
+          repo: 1128871803
           branch: main
-          dir: task-runner
+          rootDirectory: task-runner
         env:
-          - key: N8N_RUNNERS_TASK_BROKER_URI
-            value: http://n8n-app:5679
-          - key: N8N_RUNNERS_AUTH_TOKEN
-            value: ${TASK_RUNNER_AUTH_TOKEN}
-          - key: N8N_RUNNERS_MAX_CONCURRENCY
-            value: "5"
+          N8N_RUNNERS_TASK_BROKER_URI:
+            default: http://n8n-app:5679
+          N8N_RUNNERS_AUTH_TOKEN:
+            default: ${TASK_RUNNER_AUTH_TOKEN}
+          N8N_RUNNERS_MAX_CONCURRENCY:
+            default: "5"
       dependencies:
         - n8n-app
 
@@ -101,12 +154,12 @@ spec:
     - key: POSTGRES_PASSWORD
       type: STRING
       name: Database Password
-      description: Password for the PostgreSQL database
+      description: "Password for the PostgreSQL database (Default suggestion: n8npassword)"
     - key: N8N_ENCRYPTION_KEY
       type: STRING
       name: n8n Encryption Key
-      description: Key for n8n credential encryption
+      description: "Key for n8n credential encryption (Default suggestion: n8nkey123)"
     - key: TASK_RUNNER_AUTH_TOKEN
       type: STRING
       name: Task Runner Auth Token
-      description: Shared secret between n8n and task runners
+      description: "Shared secret between n8n and task runners (Default suggestion: n8nrunnersecret)"

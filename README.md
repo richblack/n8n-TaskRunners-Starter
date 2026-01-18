@@ -1,6 +1,28 @@
-# n8n v2.0+ with Python Task Runner
+# n8n Task Runners Starter
 
-n8n 自動化工作流程平台，含 Python Code Tool 支援（pandas/numpy）。
+> **教學首選**：不需信用卡、不需繁瑣設定，使用 GitHub Codespaces 一鍵啟動。
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/richblack/n8n-TaskRunners-Starter)
+
+這個 Starter Kit 包含一個預先配置好的 n8n 環境，整合了 PostgreSQL 資料庫和一個專用的 Python Task Runner。
+特別適合 **教學環境** 或 **需要安裝自定義 Python 套件** 的場景。
+
+## 🚀 快速開始 (GitHub Codespaces)
+
+這是最簡單的啟動方式，完全在瀏覽器中執行：
+
+1. 點擊上方的 **Open in GitHub Codespaces** 按鈕。
+2. 登入 GitHub 帳號並確認建立 Codespace。
+3. 等待環境建置完成（約 2-3 分鐘），系統會自動執行 `docker-compose up`。
+4. 當右下角出現 "Open in Browser" 提示時，點擊即可開啟 n8n (Port 5678)。
+   - 或切換到 "PORTS" 分頁，點擊 5678 旁的地球圖示。
+
+---
+
+## ☁️ 部署至 Zeabur (雲端環境)
+
+<a href="https://zeabur.com/templates/56Y03Z?referralCode=richblack"><img src="https://zeabur.com/button.svg" alt="Deploy on Zeabur"/></a>
+
 
 ## 快速開始
 
@@ -211,8 +233,22 @@ A: 在 Zeabur 中，使用服務名稱作為 Host。
 **使用方式：**
 1. 將此專案 Push 到您的 GitHub。
 2. 修改 `zeabur.yaml` 中的 `spec.services[2].spec.source.url`，將其指向您的 GitHub Repo URL（需公開或授權）。
-3. 透過 Zeabur CLI 或 Dashboard 匯入此 Template。
-   - 或者，您可以將此儲存庫提交給 Zeabur Template Marketplace。
+
+**3. 透過 CLI 提交與部署：**
+
+如果您已安裝並登入 Zeabur CLI (`npx zeabur auth login`)：
+
+- **立即部署 (測試用)**：
+  ```bash
+  npx zeabur template deploy -f zeabur.yaml
+  ```
+  這會直接在您選擇的專案中建立服務。
+
+- **註冊模板 (分享用)**：
+  ```bash
+  npx zeabur template create -f zeabur.yaml
+  ```
+  這會將模板儲存到您的帳戶，您可以在 Dashboard 查看代碼 (Code)，讓其他人透過該代碼部署。
 
 
 

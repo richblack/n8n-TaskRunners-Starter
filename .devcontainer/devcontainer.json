@@ -1,0 +1,25 @@
+{
+	"name": "n8n Task Runner Starter",
+	"image": "mcr.microsoft.com/devcontainers/base:bullseye",
+	"features": {
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {
+			"version": "latest",
+			"enableNonRootDocker": "true",
+			"moby": "true"
+		}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-azuretools.vscode-docker"
+			]
+		}
+	},
+	"portsAttributes": {
+		"5678": {
+			"label": "n8n Editor",
+			"onAutoForward": "notify"
+		}
+	},
+	"postCreateCommand": "docker-compose up -d"
+}
