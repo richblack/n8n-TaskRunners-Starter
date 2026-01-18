@@ -1,6 +1,8 @@
 # n8n + PostgreSQL + Python Task Runner
 # For Zeabur deployment
 
+version: '3.8'
+
 name: n8n-stack
 
 services:

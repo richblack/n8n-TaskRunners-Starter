@@ -177,8 +177,42 @@ MIT License
     - 特別注意 `POSTGRES_PASSWORD` 和 `N8N_ENCRYPTION_KEY` 必須在相關服務中一致。
     - Zeabur 會自動處理內部網路連線，通常不需要修改 host 設定，但請確認 `DB_POSTGRESDB_HOST` 指向正確的資料庫服務名稱（Zeabur 可能會加上前綴，如 `n8n-stack-db`）。
 
-### 常見問題：只出現一個服務？
-如果在部署時 Zeabur 沒有自動建立三個服務，請嘗試：
-- 進入專案設定，確認是否使用了 "Docker Compose" 模式。
-- 如果 Zeabur 只抓到了 `Dockerfile` (Task Runner)，請手動透過 "Add Service" -> "Prebuilt" 加入 PostgreSQL，並透過 "Add Service" -> "Docker" 加入 n8n 主程式，然後手動串接。但最推薦的方式是確保 Zeabur 正確讀取 `docker-compose.yml`。
+### 常見問題：部署設定
+**Q: 如果自動部署失敗（只出現一個 Caddy 靜態服務或 SERVICE_NOT_FOUND）？**
+A: 這表示 Zeabur 未能正確識別 `docker-compose.yml`。請改用 **手動分開部署** 模式，這是最穩定的方式：
+
+1. **建立資料庫 (Service 1)**：
+   - 點選 "Prebuilt Services" -> 搜尋並選擇 **PostgreSQL**。
+   - 記下連線資訊（或使用 Zeabur 內網 dns）。
+
+2. **建立 n8n 主程式 (Service 2)**：
+   - 點選 "Prebuilt Services" -> "Docker Image"。
+   - 輸入 Image: `n8nio/n8n:2.2.3`（或最新版）。
+   - 設定環境變數（參考 `.env`）。
+
+3. **建立 Task Runner (Service 3)**：
+   - 點選 "Git Service" -> 選擇本專案儲存庫。
+   - **關鍵設定**：在 "Settings" -> "Source" -> **"Root Directory"** 輸入 `/task-runner`。
+        - 這會告訴 Zeabur 進入該目錄讀取 `Dockerfile`，從而正確建立 Python Worker。
+   - 設定環境變數，並確保 `N8N_RUNNERS_TASK_BROKER_URI` 指向 n8n 主程式的內部網址。
+
+**Q: 服務之間如何連線？**
+A: 在 Zeabur 中，使用服務名稱作為 Host。
+- n8n 連 DB：`DB_POSTGRESDB_HOST` = `postgresql` (或您建立的 DB 服務名稱)
+- Worker 連 n8n：`N8N_RUNNERS_TASK_BROKER_URI` = `http://n8n:5679` (將 `n8n` 替換為您的 n8n 服務名稱)
+
+
+## 進階：建立 Zeabur 部署模板 (Template)
+
+如果您希望將此專案製作成 "Deploy on Zeabur" 的一鍵部署模板，可以使用本專案內附的 `zeabur.yaml`。
+
+此檔案依照 [Zeabur Template Specification](https://zeabur.com/docs/deploy/template-spec) 撰寫，定義了三個服務的自動部署流程。
+
+**使用方式：**
+1. 將此專案 Push 到您的 GitHub。
+2. 修改 `zeabur.yaml` 中的 `spec.services[2].spec.source.url`，將其指向您的 GitHub Repo URL（需公開或授權）。
+3. 透過 Zeabur CLI 或 Dashboard 匯入此 Template。
+   - 或者，您可以將此儲存庫提交給 Zeabur Template Marketplace。
+
+
 
