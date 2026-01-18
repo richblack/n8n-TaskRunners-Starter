@@ -14,7 +14,7 @@ services:
     image: postgres:15-alpine
     restart: unless-stopped
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -32,7 +32,7 @@ services:
     ports:
       - "5678:5678"
     volumes:
-      - n8n_data:/home/node/.n8n
+      - n8n-data:/home/node/.n8n
     environment:
       # Database
       DB_TYPE: postgresdb
@@ -68,11 +68,12 @@ services:
       N8N_RUNNERS_MAX_CONCURRENCY: 5
       N8N_RUNNERS_STDLIB_ALLOW: "*"
       N8N_RUNNERS_EXTERNAL_ALLOW: "*"
-    volumes:
-      - ./task-runner/n8n-task-runners.json:/etc/n8n-task-runners.json:ro
+    # Zeabur: Config is copied via Dockerfile, bind mount removed
+    # volumes:
+    #   - ./task-runner/n8n-task-runners.json:/etc/n8n-task-runners.json:ro
     depends_on:
       - n8n
 
 volumes:
-  postgres_data:
-  n8n_data:
+  postgres-data:
+  n8n-data:
