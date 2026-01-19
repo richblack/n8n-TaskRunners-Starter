@@ -1,25 +1,35 @@
 {
-	"name": "n8n Task Runner Starter",
-	"image": "mcr.microsoft.com/devcontainers/base:bullseye",
-	"features": {
-		"ghcr.io/devcontainers/features/docker-in-docker:2": {
-			"version": "latest",
-			"enableNonRootDocker": "true",
-			"moby": "true"
-		}
-	},
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"ms-azuretools.vscode-docker"
-			]
-		}
-	},
-	"portsAttributes": {
-		"5678": {
-			"label": "n8n Editor",
-			"onAutoForward": "notify"
-		}
-	},
-	"postCreateCommand": "docker-compose up -d"
+    "name": "n8n Task Runner Starter",
+    "image": "mcr.microsoft.com/devcontainers/base:bookworm", 
+    "features": {
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {
+            "version": "latest",
+            "enableNonRootDocker": "true",
+            "moby": "true"
+        },
+        "ghcr.io/devcontainers/features/node:1": {
+            "version": "lts",
+            "nodeGypDependencies": true
+        },
+        "ghcr.io/devcontainers/features/python:1": {
+            "version": "3.11",
+            "installTools": true
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-azuretools.vscode-docker",
+                "ms-python.python",
+                "n8n.n8n-nodes-launcher"
+            ]
+        }
+    },
+    "portsAttributes": {
+        "5678": {
+            "label": "n8n Editor",
+            "onAutoForward": "notify"
+        }
+    },
+    "postCreateCommand": "npm install && docker-compose up -d"
 }
